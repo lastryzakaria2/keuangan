@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Media Pembelajaran Interaktif - Matematika Keuangan: Anuitas</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- MathJax untuk LaTeX -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col">
+
+    <!-- KONSTAN URL GOOGLE APPS SCRIPT -->
+    <script>
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbzxdCUOJ88Wh-oJHDaV6IV4D1zyo0QHupuusf54uOSaPI0lb6h_qA3nyISQeZvqHfiMcA/exec"; // Ganti dengan URL Web App Apps Script Anda
+    </script>
+
+    <!-- Header -->
+    <header class="bg-blue-600 text-white shadow-md py-4 px-6 flex justify-between items-center">
+        <div>
+            <h1 class="text-xl font-bold">MPI Matematika Keuangan</h1>
+            <p class="text-xs text-blue-100">Materi: Anuitas & Pelunasan</p>
+        </div>
+        <div id="user-badge" class="hidden text-sm bg-blue-700 px-3 py-1 rounded-full">
+            Siswa: <span id="display-name" class="font-semibold"></span> (<span id="display-class"></span>)
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-grow container mx-auto p-4 max-w-4xl">
+        
+        <!-- Modal / Form Identitas Siswa -->
+        <section id="view-identity" class="bg-white rounded-xl shadow-lg p-8 max-w-md mx-auto mt-10">
+            <h2 class="text-2xl font-bold mb-4 text-blue-600 text-center">Selamat Datang</h2>
+            <p class="text-sm text-slate-600 mb-6 text-center">Silakan masukkan identitas Anda sebelum memulai sesi latihan atau bermain.</p>
+            <form id="form-identity" onsubmit="handleIdentity(event)" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-1">Nama Lengkap</label>
+                    <input type="text" id="input-name" required class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Masukkan nama Anda">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Kelas</label>
+                    <input type="text" id="input-class" required class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Contoh: XII IPA 1">
+                </div>
+                <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 transition">Mulai Masuk</button>
+            </form>
+        </section>
+
+        <!-- Menu Utama (Dashboard) -->
+        <section id="view-menu" class="hidden space-y-6 mt-6">
+            <div class="bg-white rounded-xl shadow p-6 text-center">
+                <h2 class="text-2xl font-bold text-slate-800 mb-2">Pilih Mode Pembelajaran</h2>
+                <p class="text-slate-600 text-sm">Pilih menu di bawah untuk mulai berlatih soal atau menguji pemahaman Anda.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <button onclick="switchMenu('berlatih')" class="bg-white border-2 border-emerald-500 hover:bg-emerald-50 rounded-xl p-6 text-left shadow transition flex flex-col justify-between">
+                    <div>
+                        <span class="text-2xl">📚</span>
+                        <h3 class="text-xl font-bold text-emerald-700 mt-2">Menu Berlatih</h3>
+                        <p class="text-sm text-slate-600 mt-1">Latihan soal pilihan ganda interaktif lengkap dengan pembahasan mendalam berbasis materi anuitas.</p>
+                    </div>
+                    <span class="text-emerald-600 font-semibold text-sm mt-4 inline-block">&rarr; Mulai Berlatih</span>
+                </button>
+                <button onclick="switchMenu('bermain')" class="bg-white border-2 border-indigo-500 hover:bg-indigo-50 rounded-xl p-6 text-left shadow transition flex flex-col justify-between">
+                    <div>
+                        <span class="text-2xl">🎮</span>
+                        <h3 class="text-xl font-bold text-indigo-700 mt-2">Menu Bermain</h3>
+                        <p class="text-sm text-slate-600 mt-1">Kuis tantangan interaktif dengan skenario kasus keuangan untuk menguji kecepatan dan ketepatan Anda.</p>
+                    </div>
+                    <span class="text-indigo-600 font-semibold text-sm mt-4 inline-block">&rarr; Mulai Bermain</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- Area Kuis / Latihan -->
+        <section id="view-quiz" class="hidden bg-white rounded-xl shadow p-6 mt-4">
+            <div class="flex justify-between items-center mb-6 border-b pb-3">
+                <h3 id="quiz-title" class="text-xl font-bold text-blue-600">Mode Berlatih</h3>
+                <span id="quiz-progress" class="text-sm font-semibold bg-slate-100 px-3 py-1 rounded-full">Soal 1 dari 5</span>
+            </div>
+            
+            <div id="question-container" class="space-y-4 mb-6">
+                <!-- Soal ditampilkan dinamis lewat JS -->
+            </div>
+
+            <div class="flex justify-between">
+                <button onclick="backToMenu()" class="bg-slate-200 text-slate-700 px-4 py-2 rounded-lg font-medium hover:bg-slate-300">Kembali ke Menu</button>
+                <button id="btn-next" onclick="nextQuestion()" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 hidden">Soal Berikutnya</button>
+            </div>
+        </section>
+
+        <!-- Area Hasil / Rekap Nilai -->
+        <section id="view-result" class="hidden bg-white rounded-xl shadow p-8 max-w-lg mx-auto mt-6 text-center space-y-4">
+            <h2 class="text-2xl font-bold text-slate-800">Hasil Kuis Anda</h2>
+            <div class="bg-blue-50 p-6 rounded-xl space-y-2">
+                <p class="text-slate-600">Jawaban Benar: <span id="res-benar" class="font-bold text-emerald-600">0</span></p>
+                <p class="text-slate-600">Jawaban Salah: <span id="res-salah" class="font-bold text-rose-600">0</span></p>
+            </div>
+            <p id="sync-status" class="text-xs text-slate-500 italic">Menyimpan hasil ke database guru...</p>
+            <button onclick="backToMenu()" class="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700">Kembali ke Menu Utama</button>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="text-center py-4 text-xs text-slate-500 border-t mt-auto">
+        &copy; 2026 Media Pembelajaran Interaktif Matematika Keuangan
+    </footer>
+
+    <!-- Aplikasi Logika & Database Connector -->
+    <script>
+        let currentUser = { name: "", kelas: "" };
+        let currentMode = ""; // "berlatih" atau "bermain"
+        let currentQuestionIndex = 0;
+        let scoreBenar = 0;
+        let scoreSalah = 0;
+        let userAnswersDetail = [];
+
+        // Bank Soal Terintegrasi (Berdasarkan materi anuitas PDF)
+        const bankSoal = {
+            berlatih: [
+                {
+                    id: "L1",
+                    pertanyaan: "Suatu pinjaman akan dilunasi dengan anuitas sebesar Rp2.500.000,00. Jika suku bunga 2\\% per bulan dengan besar bunga pertama adalah Rp1.000.000,00, besar bunga pada angsuran ke-3 adalah...",
+                    opsi: [
+                        "Rp993.800,00",
+                        "Rp993.400,00",
+                        "Rp959.400,00",
+                        "Rp939.400,00",
+                        "Rp936.400,00"
+                    ],
+                    jawabanBenar: 0, // Indeks 0 (Rp993.800,00)
+                    pembahasan: "Diketahui $A = 2.500.000$, $i = 2\\% = 0,02$, $b_1 = 1.000.000$. Angsuran pertama $a_1 = A - b_1 = 1.500.000$. Angsuran ke-3 $a_3 = a_1(1+i)^2 = 1.500.000(1,02)^2 = 1.560.600$. Bunga ke-3 $b_3 = A - a_3 = 2.500.000 - 1.560.600 = 993.800,00$."
+                },
+                {
+                    id: "L2",
+                    pertanyaan: "Pak Arman meminjam uang di bank sebesar Rp200.000.000,00 dan diangsur selama 10 tahun dengan suku bunga 12\\% per tahun. Besar anuitas bulanan dari pinjaman tersebut adalah...",
+                    opsi: [
+                        "Rp2.869.418,97",
+                        "Rp2.500.000,00",
+                        "Rp3.100.000,50",
+                        "Rp2.120.400,10",
+                        "Rp3.450.000,00"
+                    ],
+                    jawabanBenar: 0,
+                    pembahasan: "Menggunakan rumus anuitas $A = \\frac{M \\cdot i}{1 - (1+i)^{-t}}$ dengan $M = 200.000.000$, $t = 120$ bulan, dan $i = 0,01$ per bulan, diperoleh hasil Rp2.869.418,97."
+                }
+            ],
+            bermain: [
+                {
+                    id: "B1",
+                    pertanyaan: "Pinjaman sebesar Rp30.000.000,00 akan dilunasi dengan sistem anuitas bulanan dengan suku bunga 2\\% per bulan selama 4 tahun. Besar anuitas dari pinjaman tersebut adalah...",
+                    opsi: [
+                        "Rp978.055,07",
+                        "Rp850.400,20",
+                        "Rp1.020.100,50",
+                        "Rp925.300,00",
+                        "Rp1.100.000,00"
+                    ],
+                    jawabanBenar: 0,
+                    pembahasan: "Dengan $M = 30.000.000$, $t = 48$ bulan, dan $i = 0,02$, dihitung menggunakan rumus anuitas menghasilkan Rp978.055,07."
+                }
+            ]
+        };
+
+        function handleIdentity(e) {
+            e.preventDefault();
+            const name = document.getElementById('input-name').value.trim();
+            const kelas = document.getElementById('input-class').value.trim();
+            
+            if(name && kelas) {
+                currentUser.name = name;
+                currentUser.kelas = kelas;
+                
+                document.getElementById('display-name').innerText = name;
+                document.getElementById('display-class').innerText = kelas;
+                document.getElementById('user-badge').classList.remove('hidden');
+                
+                document.getElementById('view-identity').classList.add('hidden');
+                document.getElementById('view-menu').classList.remove('hidden');
+            }
+        }
+
+        function switchMenu(mode) {
+            currentMode = mode;
+            currentQuestionIndex = 0;
+            scoreBenar = 0;
+            scoreSalah = 0;
+            userAnswersDetail = [];
+            
+            document.getElementById('view-menu').classList.add('hidden');
+            document.getElementById('view-quiz').classList.remove('hidden');
+            document.getElementById('quiz-title').innerText = mode === 'berlatih' ? 'Mode Berlatih (Interaktif)' : 'Mode Bermain (Kuis Tantangan)';
+            
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            const listSoal = bankSoal[currentMode];
+            if (currentQuestionIndex < listSoal.length) {
+                const soal = listSoal[currentQuestionIndex];
+                document.getElementById('quiz-progress').innerText = `Soal ${currentQuestionIndex + 1} dari ${listSoal.length}`;
+                
+                let html = `<p class="font-medium text-slate-800 text-lg mb-4">${soal.pertanyaan}</p>`;
+                html += `<div class="space-y-2">`;
+                soal.opsi.forEach((opt, idx) => {
+                    html += `<button onclick="answerQuestion(${idx})" class="w-full text-left p-3 border rounded-lg hover:bg-blue-50 hover:border-blue-300 transition option-btn">${String.fromCharCode(65 + idx)}. ${opt}</button>`;
+                });
+                html += `</div>`;
+                html += `<div id="feedback-area" class="mt-4 hidden p-4 rounded-lg"></div>`;
+                
+                document.getElementById('question-container').innerHTML = html;
+                document.getElementById('btn-next').classList.add('hidden');
+                
+                if (window.MathJax) {
+                    MathJax.typeset();
+                }
+            } else {
+                finishQuiz();
+            }
+        }
+
+        function answerQuestion(selectedIdx) {
+            const listSoal = bankSoal[currentMode];
+            const soal = listSoal[currentQuestionIndex];
+            const buttons = document.querySelectorAll('.option-btn');
+            
+            buttons.forEach(btn => btn.disabled = true);
+            
+            let isBenar = (selectedIdx === soal.jawabanBenar);
+            if (isBenar) {
+                scoreBenar++;
+                buttons[selectedIdx].classList.add('bg-emerald-100', 'border-emerald-500');
+            } else {
+                scoreSalah++;
+                buttons[selectedIdx].classList.add('bg-rose-100', 'border-rose-500');
+                buttons[soal.jawabanBenar].classList.add('bg-emerald-100', 'border-emerald-500');
+            }
+
+            userAnswersDetail.push({
+                idSoal: soal.id,
+                jawabanSiswa: String.fromCharCode(65 + selectedIdx),
+                status: isBenar ? "Benar" : "Salah"
+            });
+
+            const feedbackDiv = document.getElementById('feedback-area');
+            feedbackDiv.classList.remove('hidden');
+            feedbackDiv.className = `mt-4 p-4 rounded-lg ${isBenar ? 'bg-emerald-50 text-emerald-800' : 'bg-rose-50 text-rose-800'}`;
+            feedbackDiv.innerHTML = `<p class="font-bold">${isBenar ? 'Jawaban Anda Benar!' : 'Jawaban Anda Kurang Tepat.'}</p><p class="text-sm mt-1"><strong>Pembahasan:</strong> ${soal.pembahasan}</p>`;
+            
+            if (window.MathJax) {
+                MathJax.typeset();
+            }
+
+            document.getElementById('btn-next').classList.remove('hidden');
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            loadQuestion();
+        }
+
+        function finishQuiz() {
+            document.getElementById('view-quiz').classList.add('hidden');
+            document.getElementById('view-result').classList.remove('hidden');
+            
+            document.getElementById('res-benar').innerText = scoreBenar;
+            document.getElementById('res-salah').innerText = scoreSalah;
+            
+            // Kirim data ke Google Sheets melalui GAS Web App
+            sendDataToGAS();
+        }
+
+        function sendDataToGAS() {
+            if (GAS_URL === "URL_GAS_ANDA_DISINI") {
+                document.getElementById('sync-status').innerText = "URL GAS belum disetel. Data tidak terkirim ke Spreadsheet.";
+                return;
+            }
+
+            const payload = {
+                action: "saveResult",
+                nama: currentUser.name,
+                kelas: currentUser.kelas,
+                benar: scoreBenar,
+                salah: scoreSalah,
+                detail: userAnswersDetail
+            };
+
+            fetch(GAS_URL, {
+                method: "POST",
+                mode: "no-cors",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            }).then(() => {
+                document.getElementById('sync-status').innerText = "Data hasil kuis berhasil dikirim ke database guru!";
+            }).catch(err => {
+                document.getElementById('sync-status').innerText = "Gagal mengirim data ke database.";
+                console.error(err);
+            });
+        }
+
+        function backToMenu() {
+            document.getElementById('view-quiz').classList.add('hidden');
+            document.getElementById('view-result').classList.add('hidden');
+            document.getElementById('view-menu').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
